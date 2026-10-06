@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { getTodos, createTodo, updateTodo, deleteTodo } from "./api";
+import {
+  getTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+} from "./api";
 import { FILTERS } from "./filters";
 import Sidebar from "./components/Sidebar";
 import TodoForm from "./components/TodoForm";
@@ -10,14 +15,11 @@ function App() {
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  // Shows an error in the banner (and logs it in the console)
   function showError(err) {
     console.error(err);
     setError(err.message);
   }
 
-  // Load all todos once when the page opens
   useEffect(() => {
     async function loadTodos() {
       try {
@@ -27,7 +29,6 @@ function App() {
       } catch (err) {
         showError(err);
       } finally {
-        // Stop loading whether it worked or failed
         setLoading(false);
       }
     }
@@ -35,7 +36,6 @@ function App() {
     loadTodos();
   }, []);
 
-  // Add a new todo to the top of the list
   async function handleAdd(title) {
     try {
       setError("");
@@ -46,59 +46,72 @@ function App() {
     }
   }
 
-  // Replace the edited todo with the updated version from the server
   async function handleUpdate(id, data) {
     try {
       setError("");
+
       const updated = await updateTodo(id, data);
-      // TODO: Complete this. Update the `todos` state so the edited todo is
-      // replaced with `updated` (keep every other todo as it is).
+
+      setTodos((prev) =>
+        prev.map((todo) =>
+          todo._id === id ? updated : todo
+        )
+      );
     } catch (err) {
       showError(err);
     }
   }
 
-  // Remove one todo
   async function handleDelete(id) {
     try {
       setError("");
+
       await deleteTodo(id);
-      setTodos((prev) => prev.filter((todo) => todo._id !== id));
+
+      setTodos((prev) =>
+        prev.filter((todo) => todo._id !== id)
+      );
     } catch (err) {
       showError(err);
     }
   }
 
-  // Remove every completed todo
   async function handleClearDone() {
     try {
       setError("");
-      const doneTodos = todos.filter((todo) => todo.completed);
+
+      const doneTodos = todos.filter(
+        (todo) => todo.completed
+      );
 
       for (const todo of doneTodos) {
         await deleteTodo(todo._id);
       }
 
-      setTodos((prev) => prev.filter((todo) => !todo.completed));
+      setTodos((prev) =>
+        prev.filter((todo) => !todo.completed)
+      );
     } catch (err) {
       showError(err);
     }
   }
 
-  // Only the todos that match the selected filter
-  const filteredTodos = todos.filter(FILTERS[filter].test);
+  const filteredTodos = todos.filter(
+    FILTERS[filter].test
+  );
 
-  // "1 task" or "3 tasks"
-  const taskWord = filteredTodos.length === 1 ? "task" : "tasks";
+  const taskWord =
+    filteredTodos.length === 1 ? "task" : "tasks";
 
-  // Decide what to show in the list area
   function renderTodos() {
     if (loading) {
       return <p className="empty">Loading...</p>;
     }
 
     if (filteredTodos.length === 0) {
-      let message = "You're all caught up. Add a task above.";
+      let message =
+        "You're all caught up. Add a task above.";
+
       if (filter === "done") {
         message = "Nothing completed yet";
       }
@@ -137,6 +150,7 @@ function App() {
       <main className="panel content">
         <header className="content-header">
           <h2>{FILTERS[filter].label}</h2>
+
           <span className="content-count">
             {filteredTodos.length} {taskWord}
           </span>
@@ -147,7 +161,11 @@ function App() {
         {error && (
           <div className="error" role="alert">
             <span>{error}</span>
-            <button onClick={() => setError("")} aria-label="Dismiss">
+
+            <button
+              onClick={() => setError("")}
+              aria-label="Dismiss"
+            >
               ×
             </button>
           </div>
